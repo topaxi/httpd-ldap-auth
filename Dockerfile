@@ -1,8 +1,10 @@
 from httpd:2.4-alpine
 
+COPY bin/ /usr/bin/
 COPY httpd.conf $HTTPD_PREFIX/conf/httpd.conf
 RUN apk update && apk add apr-util-ldap && \
-  chown www-data:www-data -R "$HTTPD_PREFIX"
+  chown www-data:www-data -R "$HTTPD_PREFIX" && \
+  fix-permissions "$HTTPD_PREFIX"
 
 USER www-data
 
