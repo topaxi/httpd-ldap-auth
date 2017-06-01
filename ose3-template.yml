@@ -1,0 +1,165 @@
+kind: Template
+apiVersion: v1
+metadata:
+  name: httpd-ldap-auth
+parameters:
+- name: PROXY_TO
+  value: http://
+- name: SERVER_ADMIN
+  value: you@example.com
+- name: AUTH_NAME
+  value: '"LDAP Auth"'
+- name: AUTH_LDAP_URL
+  value: ldaps://ldap.example.com/ou=users,dc=example
+- name: AUTH_LDAP_BIND_DN
+  value: cn=readonly,dc=example
+- name: AUTH_LDAP_BIND_PASSWORD
+  generate: expression
+  from: "[a-zA-Z0-9]{42}"
+- name: AUTH_LDAP_GROUP_ATTRIBUTE
+  value: memberUid
+- name: AUTH_LDAP_GROUP_ATTRIBUTE_IS_DN
+  value: "on"
+- name: LDAP_VERIFY_SERVER_CERT
+  value: "On"
+objects:
+- apiVersion: v1
+  kind: ImageStream
+  metadata:
+    labels:
+      app: httpd-ldap-auth
+    name: httpd
+  spec:
+    tags:
+    - annotations:
+        openshift.io/imported-from: httpd:2.4-alpine
+      from:
+        kind: DockerImage
+        name: httpd:2.4-alpine
+      name: 2.4-alpine
+- apiVersion: v1
+  kind: ImageStream
+  metadata:
+    labels:
+      app: httpd-ldap-auth
+    name: httpd-ldap-auth
+  spec: {}
+- apiVersion: v1
+  kind: BuildConfig
+  metadata:
+    labels:
+      app: httpd-ldap-auth
+    name: httpd-ldap-auth
+  spec:
+    output:
+      to:
+        kind: ImageStreamTag
+        name: httpd-ldap-auth:latest
+    runPolicy: Serial
+    source:
+      git:
+        ref: master
+        uri: https://github.com/topaxi/httpd-ldap-auth.git
+      type: Git
+    strategy:
+      dockerStrategy:
+        from:
+          kind: ImageStreamTag
+          name: httpd:2.4-alpine
+      type: Docker
+    triggers:
+    - imageChange: {}
+      type: ImageChange
+    - type: ConfigChange
+- apiVersion: v1
+  kind: DeploymentConfig
+  metadata:
+    labels:
+      app: httpd-ldap-auth
+    name: httpd-ldap-auth
+  spec:
+    replicas: 1
+    selector:
+      app: httpd-ldap-auth
+      deploymentconfig: httpd-ldap-auth
+    strategy:
+      type: Rolling
+    template:
+      metadata:
+        labels:
+          app: httpd-ldap-auth
+          deploymentconfig: httpd-ldap-auth
+      spec:
+        containers:
+        - env:
+          - name: PROXY_TO
+            value: ${PROXY_TO}
+          - name: SERVER_ADMIN
+            value: ${SERVER_ADMIN}
+          - name: AUTH_NAME
+            value: ${AUTH_NAME}
+          - name: AUTH_LDAP_URL
+            value: ${AUTH_LDAP_URL}
+          - name: AUTH_LDAP_BIND_DN
+            value: ${AUTH_LDAP_BIND_DN}
+          - name: AUTH_LDAP_BIND_PASSWORD
+            value: ${AUTH_LDAP_BIND_PASSWORD}
+          - name: AUTH_LDAP_GROUP_ATTRIBUTE
+            value: ${AUTH_LDAP_GROUP_ATTRIBUTE}
+          - name: AUTH_LDAP_GROUP_ATTRIBUTE_IS_DN
+            value: ${AUTH_LDAP_GROUP_ATTRIBUTE_IS_DN}
+          - name: LDAP_VERIFY_SERVER_CERT
+            value: ${LDAP_VERIFY_SERVER_CERT}
+          image: httpd-ldap-auth:latest
+          imagePullPolicy: Always
+          name: httpd-ldap-auth
+          ports:
+          - containerPort: 8080
+            protocol: TCP
+        restartPolicy: Always
+    test: false
+    triggers:
+    - type: ConfigChange
+    - type: ImageChange
+      imageChangeParams:
+        automatic: true
+        containerNames:
+        - httpd-ldap-auth
+        from:
+          kind: ImageStreamTag
+          name: httpd-ldap-auth:latest
+          namespace: httpd-ldap-auth
+- apiVersion: v1
+  kind: Route
+  metadata:
+    labels:
+      app: httpd-ldap-auth
+    name: httpd-ldap-auth
+  spec:
+    port:
+      targetPort: 8080-tcp
+    tls:
+      insecureEdgeTerminationPolicy: Redirect
+      termination: edge
+    to:
+      kind: Service
+      name: httpd-ldap-auth
+      weight: 100
+    wildcardPolicy: None
+- apiVersion: v1
+  kind: Service
+  metadata:
+    labels:
+      app: httpd-ldap-auth
+    name: httpd-ldap-auth
+  spec:
+    ports:
+    - name: 8080-tcp
+      port: 8080
+      protocol: TCP
+      targetPort: 8080
+    selector:
+      app: httpd-ldap-auth
+      deploymentconfig: httpd-ldap-auth
+    sessionAffinity: None
+    type: ClusterIP
