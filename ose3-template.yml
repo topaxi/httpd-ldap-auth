@@ -32,11 +32,11 @@ objects:
   spec:
     tags:
     - annotations:
-        openshift.io/imported-from: httpd:2.4-alpine
+        openshift.io/imported-from: httpd:2.4
       from:
         kind: DockerImage
-        name: httpd:2.4-alpine
-      name: 2.4-alpine
+        name: httpd:2.4
+      name: '2.4'
 - apiVersion: v1
   kind: ImageStream
   metadata:
@@ -65,7 +65,7 @@ objects:
       dockerStrategy:
         from:
           kind: ImageStreamTag
-          name: httpd:2.4-alpine
+          name: httpd:2.4
       type: Docker
     triggers:
     - imageChange: {}
