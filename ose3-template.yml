@@ -20,6 +20,10 @@ parameters:
   value: memberUid
 - name: AUTH_LDAP_GROUP_ATTRIBUTE_IS_DN
   value: "on"
+- name: LDAP_TRUSTED_GLOBAL_CERT_TYPE
+  value: CA_BASE64
+- name: LDAP_TRUSTED_GLOBAL_CERT_PATH
+  value: /etc/ssl/certs/cacert.pem
 - name: LDAP_VERIFY_SERVER_CERT
   value: "On"
 - name: LOG_LEVEL
@@ -110,6 +114,10 @@ objects:
             value: ${AUTH_LDAP_GROUP_ATTRIBUTE}
           - name: AUTH_LDAP_GROUP_ATTRIBUTE_IS_DN
             value: ${AUTH_LDAP_GROUP_ATTRIBUTE_IS_DN}
+          - name: LDAP_TRUSTED_GLOBAL_CERT_TYPE
+            value: ${LDAP_TRUSTED_GLOBAL_CERT_TYPE}
+          - name: LDAP_TRUSTED_GLOBAL_CERT_PATH
+            value: ${LDAP_TRUSTED_GLOBAL_CERT_PATH}
           - name: LDAP_VERIFY_SERVER_CERT
             value: ${LDAP_VERIFY_SERVER_CERT}
           - name: LOG_LEVEL
