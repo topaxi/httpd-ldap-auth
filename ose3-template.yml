@@ -22,6 +22,8 @@ parameters:
   value: "on"
 - name: LDAP_VERIFY_SERVER_CERT
   value: "On"
+- name: LOG_LEVEL
+  value: warn
 objects:
 - apiVersion: v1
   kind: ImageStream
@@ -110,6 +112,8 @@ objects:
             value: ${AUTH_LDAP_GROUP_ATTRIBUTE_IS_DN}
           - name: LDAP_VERIFY_SERVER_CERT
             value: ${LDAP_VERIFY_SERVER_CERT}
+          - name: LOG_LEVEL
+            value: ${LOG_LEVEL}
           image: httpd-ldap-auth:latest
           imagePullPolicy: Always
           name: httpd-ldap-auth
