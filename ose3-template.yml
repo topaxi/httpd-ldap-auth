@@ -128,7 +128,6 @@ objects:
         from:
           kind: ImageStreamTag
           name: httpd-ldap-auth:latest
-          namespace: httpd-ldap-auth
 - apiVersion: v1
   kind: Route
   metadata:
